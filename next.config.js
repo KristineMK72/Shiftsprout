@@ -1,0 +1,27 @@
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+
+  experimental: {
+    serverActions: true
+  },
+
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**"
+      }
+    ]
+  },
+
+  typescript: {
+    ignoreBuildErrors: false
+  },
+
+  eslint: {
+    ignoreDuringBuilds: true
+  }
+};
+
+module.exports = nextConfig;
