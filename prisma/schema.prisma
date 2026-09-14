@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  name          String?
+  phone         String?
+  role          String   @default("employee")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  shifts        Shift[]
+  punches       Punch[]
+  coverageReqs  CoverageRequest[]
+}
+
+model Location {
+  id        String   @id @default(uuid())
+  name      String
+  address   String?
+  createdAt DateTime @default(now())
+
+  // Relations
+  shifts    Shift[]
+}
+
+model Shift {
+  id          String   @id @default(uuid())
+  userId      String?
+  locationId  String
+  role        String
+  startTime   DateTime
+  endTime     DateTime
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  user        User?      @relation(fields: [userId], references: [id])
+  location    Location   @relation(fields: [locationId], references: [id])
+  coverageReq CoverageRequest?
+}
+
+model CoverageRequest {
+  id        String   @id @default(uuid())
+  shiftId   String   @unique
+  status    String   @default("pending") // pending, accepted, declined
+  createdAt DateTime @default(now())
+
+  // Relations
+  shift     Shift    @relation(fields: [shiftId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+}
+
+model Punch {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String   // clock_in, clock_out, break_start, break_end
+  timestamp DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id])
+}
