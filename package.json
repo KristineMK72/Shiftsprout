@@ -36,6 +36,9 @@
     "@radix-ui/react-toast": "^1.1.4"
   },
   "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22",
     "prisma": "^5.12.0",
     "typescript": "^5.4.5",
     "ts-node": "^10.9.2",
