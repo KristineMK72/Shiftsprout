@@ -17,17 +17,23 @@ import {
   TrendingUp,
   CheckCircle2,
   ArrowUpRight,
-  Plane,
   Globe,
 } from "lucide-react";
 import Link from "next/link";
+
+type ChartItem = {
+  day: string;
+  internalShifts: number;
+  poolShifts: number;
+};
 
 type Stats = {
   onShiftNow: number;
   openShifts: number;
   pendingPto: number;
   teamCount: number;
-  marketplaceShifts: number; // Rural community pool metric
+  marketplaceShifts: number;
+  chartData: ChartItem[];
 };
 
 export default function DashboardPage() {
@@ -37,6 +43,7 @@ export default function DashboardPage() {
     pendingPto: 0,
     teamCount: 0,
     marketplaceShifts: 0,
+    chartData: [],
   });
 
   useEffect(() => {
@@ -49,6 +56,7 @@ export default function DashboardPage() {
           pendingPto: d.pendingPto ?? 0,
           teamCount: d.teamCount ?? 0,
           marketplaceShifts: d.marketplaceShifts ?? 0,
+          chartData: d.chartData ?? [],
         })
       )
       .catch(() => {});
@@ -135,6 +143,54 @@ export default function DashboardPage() {
           </Card>
         ))}
       </div>
+
+      {/* Visual Bar Chart: Weekly Shift Volume & Regional Activity */}
+      <Card className="rounded-2xl border-border/60 bg-white/85 shadow-sm backdrop-blur">
+        <CardHeader>
+          <CardTitle className="text-lg">Weekly Shift Volume & Regional Pool Activity</CardTitle>
+          <CardDescription>Comparing internal business shifts vs. shared cooperative pool claims</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="h-64 w-full flex items-end justify-between gap-2 pt-6 px-2">
+            {stats.chartData.map((item) => {
+              const maxHeight = 25; // Scale height baseline helper
+              const internalHeight = Math.min(100, (item.internalShifts / maxHeight) * 100);
+              const poolHeight = Math.min(100, (item.poolShifts / maxHeight) * 100);
+
+              return (
+                <div key={item.day} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                  <div className="w-full flex items-end justify-center gap-1 h-48">
+                    {/* Internal Shifts Bar */}
+                    <div 
+                      style={{ height: `${internalHeight}%` }} 
+                      className="w-3 bg-emerald-500 rounded-t-md transition-all duration-500 hover:bg-emerald-600"
+                      title={`Internal: ${item.internalShifts}`}
+                    />
+                    {/* Community Pool Shifts Bar */}
+                    <div 
+                      style={{ height: `${poolHeight}%` }} 
+                      className="w-3 bg-indigo-500 rounded-t-md transition-all duration-500 hover:bg-indigo-600"
+                      title={`Community Pool: ${item.poolShifts}`}
+                    />
+                  </div>
+                  <span className="text-xs font-medium text-muted-foreground">{item.day}</span>
+                </div>
+              );
+            })}
+          </div>
+          {/* Chart Legend */}
+          <div className="flex items-center justify-center gap-6 mt-6 pt-4 border-t border-border/60 text-xs">
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded-full bg-emerald-500" />
+              <span className="text-muted-foreground font-medium">Internal Shifts</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded-full bg-indigo-500" />
+              <span className="text-muted-foreground font-medium">Community Co-op Pool</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Main Sections Grid */}
       <div className="grid gap-6 lg:grid-cols-2">
