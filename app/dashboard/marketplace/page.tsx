@@ -9,11 +9,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Globe, PlusCircle, MapPin, Building2, CheckCircle2 } from "lucide-react";
 
-// Mock data for regional cooperative ring shifts
-initialShifts := [
+const initialShifts = [
   {
     id: "1",
     business: "Northwoods Agricultural Co-op",
@@ -35,7 +33,7 @@ initialShifts := [
 ];
 
 export default function MarketplacePage() {
-  const [shifts, setShifts] = useState(initialShifts);
+  const [shifts] = useState(initialShifts);
   const [claimedIds, setClaimedIds] = useState<string[]>([]);
 
   const handleClaim = (id: string) => {
@@ -44,7 +42,6 @@ export default function MarketplacePage() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
@@ -66,7 +63,6 @@ export default function MarketplacePage() {
         </Button>
       </div>
 
-      {/* Available Shared Shifts Grid */}
       <div className="grid gap-4 md:grid-cols-2">
         {shifts.map((shift) => {
           const isClaimed = claimedIds.includes(shift.id);
@@ -75,9 +71,9 @@ export default function MarketplacePage() {
             <Card key={shift.id} className="rounded-2xl border-border/60 bg-white/85 shadow-sm backdrop-blur">
               <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                 <div>
-                  <Badge variant="outline" className="mb-2 bg-indigo-50/50 text-indigo-700 border-indigo-200">
+                  <span className="inline-block mb-2 rounded-md bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700 border border-indigo-200">
                     {shift.sector}
-                  </Badge>
+                  </span>
                   <CardTitle className="text-lg font-semibold">{shift.title}</CardTitle>
                   <CardDescription className="flex items-center gap-1.5 mt-1">
                     <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
