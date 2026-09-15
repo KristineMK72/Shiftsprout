@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Globe, Layers, Navigation, ShieldCheck } from "lucide-react";
+import { MapPin, Globe, Layers, Navigation, ShieldCheck, Building2 } from "lucide-react";
 
 export default function SpatialMap() {
   const [activeRadius, setActiveRadius] = useState<number>(15); // 15-mile geofence default
