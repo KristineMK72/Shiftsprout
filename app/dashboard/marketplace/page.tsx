@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -9,36 +9,54 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Globe, PlusCircle, MapPin, Building2, CheckCircle2, Layers } from "lucide-react";
+import { Globe, PlusCircle, MapPin, Building2, CheckCircle2, Layers, Loader2 } from "lucide-react";
 
-const initialShifts = [
-  {
-    id: "1",
-    business: "Northwoods Agricultural Co-op",
-    title: "Harvest Line Assistant",
-    date: "Tomorrow, 8:00 AM - 4:00 PM",
-    payRate: "$22.00/hr",
-    distance: "3.2 miles away",
-    sector: "Agriculture",
-  },
-  {
-    id: "2",
-    business: "Pine Ridge Diner",
-    title: "Weekend Prep Cook",
-    date: "Saturday, 6:00 AM - 2:00 PM",
-    payRate: "$19.50/hr",
-    distance: "5.0 miles away",
-    sector: "Hospitality",
-  },
-];
+type Shift = {
+  id: string;
+  business?: string;
+  title: string;
+  startTime?: string;
+  date?: string;
+  payRate: number | string;
+  distance?: string;
+  sector?: string;
+  status: string;
+};
 
 export default function MarketplacePage() {
-  const [shifts] = useState(initialShifts);
+  const [shifts, setShifts] = useState<Shift[]>([]);
+  const [loading, setLoading] = useState(true);
   const [claimedIds, setClaimedIds] = useState<string[]>([]);
   const [activeRadius, setActiveRadius] = useState<number>(15);
 
-  const handleClaim = (id: string) => {
-    setClaimedIds((prev) => [...prev, id]);
+  // Fetch live shifts from your API route on mount
+  useEffect(() => {
+    fetch("/api/marketplace")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.shifts) {
+          setShifts(data.shifts);
+        }
+      })
+      .catch((err) => console.error("Failed to fetch marketplace shifts", err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Handle claiming a shift via API
+  const handleClaim = async (id: string) => {
+    try {
+      const res = await fetch("/api/marketplace", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ shiftId: id }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setClaimedIds((prev) => [...prev, id]);
+      }
+    } catch (err) {
+      console.error("Failed to claim shift", err);
+    }
   };
 
   return (
@@ -141,59 +159,76 @@ export default function MarketplacePage() {
       </Card>
 
       {/* Available Shared Shifts Grid */}
-      <div className="grid gap-4 md:grid-cols-2">
-        {shifts.map((shift) => {
-          const isClaimed = claimedIds.includes(shift.id);
+      <div>
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold tracking-tight">Active Regional Pool</h2>
+          <p className="text-xs text-muted-foreground">Shifts broadcasted within your cooperative ring</p>
+        </div>
 
-          return (
-            <Card key={shift.id} className="rounded-2xl border-border/60 bg-white/85 shadow-sm backdrop-blur">
-              <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                <div>
-                  <span className="inline-block mb-2 rounded-md bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700 border border-indigo-200">
-                    {shift.sector}
-                  </span>
-                  <CardTitle className="text-lg font-semibold">{shift.title}</CardTitle>
-                  <CardDescription className="flex items-center gap-1.5 mt-1">
-                    <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                    {shift.business}
-                  </CardDescription>
-                </div>
-                <span className="text-sm font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg">
-                  {shift.payRate}
-                </span>
-              </CardHeader>
-              <CardContent className="space-y-4 pt-2">
-                <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-3.5 w-3.5 text-primary" />
-                    <span>{shift.date}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-3.5 w-3.5 text-amber-600" />
-                    <span>{shift.distance} (Within active geofence)</span>
-                  </div>
-                </div>
+        {loading ? (
+          <div className="flex h-32 items-center justify-center text-muted-foreground">
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Loading shared shifts...
+          </div>
+        ) : shifts.length === 0 ? (
+          <Card className="rounded-2xl border-border/60 bg-white/85 p-8 text-center text-muted-foreground">
+            <p>No active marketplace shifts found in your ring right now.</p>
+          </Card>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2">
+            {shifts.map((shift) => {
+              const isClaimed = claimedIds.includes(shift.id) || shift.status === "claimed";
 
-                <div className="pt-2 flex items-center justify-between border-t border-border/60">
-                  <span className="text-xs text-muted-foreground">FLSA Overtime Audit Active</span>
-                  {isClaimed ? (
-                    <Button disabled variant="outline" className="gap-1.5 text-emerald-600 border-emerald-200 bg-emerald-50">
-                      <CheckCircle2 className="h-4 w-4" />
-                      Claimed & Locked
-                    </Button>
-                  ) : (
-                    <Button 
-                      onClick={() => handleClaim(shift.id)}
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl text-xs h-9"
-                    >
-                      Claim Shift
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+              return (
+                <Card key={shift.id} className="rounded-2xl border-border/60 bg-white/85 shadow-sm backdrop-blur">
+                  <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                    <div>
+                      <span className="inline-block mb-2 rounded-md bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700 border border-indigo-200">
+                        {shift.sector || "General Co-op"}
+                      </span>
+                      <CardTitle className="text-lg font-semibold">{shift.title}</CardTitle>
+                      <CardDescription className="flex items-center gap-1.5 mt-1">
+                        <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                        {shift.business || "Partner Business"}
+                      </CardDescription>
+                    </div>
+                    <span className="text-sm font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg">
+                      {typeof shift.payRate === "number" ? `$${shift.payRate.toFixed(2)}/hr` : shift.payRate}
+                    </span>
+                  </CardHeader>
+                  <CardContent className="space-y-4 pt-2">
+                    <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <Globe className="h-3.5 w-3.5 text-primary" />
+                        <span>{shift.date || (shift.startTime ? new Date(shift.startTime).toLocaleString() : "Scheduled")}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-3.5 w-3.5 text-amber-600" />
+                        <span>{shift.distance || "Within active geofence"}</span>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 flex items-center justify-between border-t border-border/60">
+                      <span className="text-xs text-muted-foreground">FLSA Overtime Audit Active</span>
+                      {isClaimed ? (
+                        <Button disabled variant="outline" className="gap-1.5 text-emerald-600 border-emerald-200 bg-emerald-50">
+                          <CheckCircle2 className="h-4 w-4" />
+                          Claimed & Locked
+                        </Button>
+                      ) : (
+                        <Button 
+                          onClick={() => handleClaim(shift.id)}
+                          className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl text-xs h-9"
+                        >
+                          Claim Shift
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
