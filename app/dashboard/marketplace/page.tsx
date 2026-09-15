@@ -1,0 +1,126 @@
+"use client";
+
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Globe, PlusCircle, MapPin, Building2, CheckCircle2 } from "lucide-react";
+
+// Mock data for regional cooperative ring shifts
+initialShifts := [
+  {
+    id: "1",
+    business: "Northwoods Agricultural Co-op",
+    title: "Harvest Line Assistant",
+    date: "Tomorrow, 8:00 AM - 4:00 PM",
+    payRate: "$22.00/hr",
+    distance: "3.2 miles away",
+    sector: "Agriculture",
+  },
+  {
+    id: "2",
+    business: "Pine Ridge Diner",
+    title: "Weekend Prep Cook",
+    date: "Saturday, 6:00 AM - 2:00 PM",
+    payRate: "$19.50/hr",
+    distance: "5.0 miles away",
+    sector: "Hospitality",
+  },
+];
+
+export default function MarketplacePage() {
+  const [shifts, setShifts] = useState(initialShifts);
+  const [claimedIds, setClaimedIds] = useState<string[]>([]);
+
+  const handleClaim = (id: string) => {
+    setClaimedIds((prev) => [...prev, id]);
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-600/20">
+              Cooperative Ring Active
+            </span>
+            <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+              15-Mile Geofence
+            </span>
+          </div>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight">Community Talent Pool</h1>
+          <p className="mt-1 text-muted-foreground">
+            Share cross-trained staff and pick up open shifts across trusted local businesses
+          </p>
+        </div>
+        <Button className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl">
+          <PlusCircle className="h-4 w-4" />
+          Broadcast Overflow Shift
+        </Button>
+      </div>
+
+      {/* Available Shared Shifts Grid */}
+      <div className="grid gap-4 md:grid-cols-2">
+        {shifts.map((shift) => {
+          const isClaimed = claimedIds.includes(shift.id);
+
+          return (
+            <Card key={shift.id} className="rounded-2xl border-border/60 bg-white/85 shadow-sm backdrop-blur">
+              <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                <div>
+                  <Badge variant="outline" className="mb-2 bg-indigo-50/50 text-indigo-700 border-indigo-200">
+                    {shift.sector}
+                  </Badge>
+                  <CardTitle className="text-lg font-semibold">{shift.title}</CardTitle>
+                  <CardDescription className="flex items-center gap-1.5 mt-1">
+                    <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                    {shift.business}
+                  </CardDescription>
+                </div>
+                <span className="text-sm font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg">
+                  {shift.payRate}
+                </span>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-2">
+                <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-3.5 w-3.5 text-primary" />
+                    <span>{shift.date}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-3.5 w-3.5 text-amber-600" />
+                    <span>{shift.distance} (Within local micro-region)</span>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex items-center justify-between border-t border-border/60">
+                  <span className="text-xs text-muted-foreground">Compliance checked (FLSA / Overtime)</span>
+                  {isClaimed ? (
+                    <Button disabled variant="outline" className="gap-1.5 text-emerald-600 border-emerald-200 bg-emerald-50">
+                      <CheckCircle2 className="h-4 w-4" />
+                      Claimed & Locked
+                    </Button>
+                  ) : (
+                    <Button 
+                      onClick={() => handleClaim(shift.id)}
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl text-xs h-9"
+                    >
+                      Claim Shift
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
