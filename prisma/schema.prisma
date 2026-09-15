@@ -7,31 +7,54 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
+// --- Multi-tenant foundation (rural operators often have multiple sites) ---
+
+model Tenant {
   id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  phone     String?
-  role      String   @default("employee") // employee | manager | admin
+  name      String
+  slug      String   @unique
+  plan      String   @default("sprout") // sprout | growth | enterprise
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
+  locations Location[]
+  users     User[]
+}
+
+model Location {
+  id        String   @id @default(uuid())
+  tenantId  String?
+  name      String
+  address   String?
+  city      String?
+  state     String?
+  timezone  String   @default("America/Chicago")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id])
+  shifts Shift[]
+  users  User[]
+}
+
+model User {
+  id         String   @id @default(uuid())
+  tenantId   String?
+  locationId String?
+  email      String   @unique
+  name       String?
+  phone      String?
+  role       String   @default("employee") // employee | manager | admin
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  tenant       Tenant?            @relation(fields: [tenantId], references: [id])
+  location     Location?          @relation(fields: [locationId], references: [id])
   shifts       Shift[]
   punches      Punch[]
   coverageReqs CoverageRequest[]
   ptoRequests  PtoRequest[]
   ptoBalances  PtoBalance[]
-}
-
-model Location {
-  id        String   @id @default(uuid())
-  name      String
-  address   String?
-  timezone  String   @default("America/Chicago")
-  createdAt DateTime @default(now())
-
-  shifts Shift[]
 }
 
 model Shift {
@@ -54,14 +77,14 @@ model Shift {
 model CoverageRequest {
   id        String   @id @default(uuid())
   shiftId   String   @unique
-  userId    String?  // who is requesting or who accepted
+  userId    String?
   status    String   @default("pending") // pending | accepted | declined | filled
   note      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  shift Shift @relation(fields: [shiftId], references: [id])
-  user  User? @relation(fields: [userId], references: [id])
+  shift Shift  @relation(fields: [shiftId], references: [id])
+  user  User?  @relation(fields: [userId], references: [id])
 }
 
 model Punch {
