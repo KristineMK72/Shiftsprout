@@ -7,13 +7,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// --- Multi-tenant foundation (rural operators often have multiple sites) ---
-
 model Tenant {
   id        String   @id @default(uuid())
   name      String
   slug      String   @unique
-  plan      String   @default("sprout") // sprout | growth | enterprise
+  plan      String   @default("sprout")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -38,15 +36,16 @@ model Location {
 }
 
 model User {
-  id         String   @id @default(uuid())
-  tenantId   String?
-  locationId String?
-  email      String   @unique
-  name       String?
-  phone      String?
-  role       String   @default("employee") // employee | manager | admin
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id           String   @id @default(uuid())
+  tenantId     String?
+  locationId   String?
+  email        String   @unique
+  name         String?
+  phone        String?
+  role         String   @default("employee")
+  passwordHash String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   tenant       Tenant?            @relation(fields: [tenantId], references: [id])
   location     Location?          @relation(fields: [locationId], references: [id])
@@ -65,7 +64,7 @@ model Shift {
   startTime  DateTime
   endTime    DateTime
   notes      String?
-  status     String   @default("scheduled") // scheduled | open | completed | cancelled
+  status     String   @default("scheduled")
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
@@ -78,7 +77,7 @@ model CoverageRequest {
   id        String   @id @default(uuid())
   shiftId   String   @unique
   userId    String?
-  status    String   @default("pending") // pending | accepted | declined | filled
+  status    String   @default("pending")
   note      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -90,7 +89,7 @@ model CoverageRequest {
 model Punch {
   id        String   @id @default(uuid())
   userId    String
-  type      String   // clock_in | clock_out | break_start | break_end
+  type      String
   timestamp DateTime @default(now())
   approved  Boolean  @default(false)
   note      String?
@@ -104,8 +103,8 @@ model PtoRequest {
   userId    String
   startDate DateTime
   endDate   DateTime
-  type      String   // vacation | sick | personal | unpaid
-  status    String   @default("pending") // pending | approved | denied | cancelled
+  type      String
+  status    String   @default("pending")
   note      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -116,7 +115,7 @@ model PtoRequest {
 model PtoBalance {
   id        String   @id @default(uuid())
   userId    String
-  type      String   // vacation | sick | personal
+  type      String
   hours     Float    @default(0)
   year      Int
   updatedAt DateTime @updatedAt
