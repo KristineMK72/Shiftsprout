@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -9,182 +9,118 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Clock, Check, Loader2, LogIn, LogOut, AlertTriangle, ShieldCheck } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Globe, PlusCircle, MapPin, Building2, CheckCircle2 } from "lucide-react";
 
-type Punch = {
-  id: string;
-  type: string;
-  timestamp: string;
-  approved: boolean;
-  user?: { id: string; name: string | null; email: string } | null;
-};
+// Mock data for regional cooperative ring shifts
+const initialShifts = [
+  {
+    id: "1",
+    business: "Northwoods Agricultural Co-op",
+    title: "Harvest Line Assistant",
+    date: "Tomorrow, 8:00 AM - 4:00 PM",
+    payRate: "$22.00/hr",
+    distance: "3.2 miles away",
+    sector: "Agriculture",
+  },
+  {
+    id: "2",
+    business: "Pine Ridge Diner",
+    title: "Weekend Prep Cook",
+    date: "Saturday, 6:00 AM - 2:00 PM",
+    payRate: "$19.50/hr",
+    distance: "5.0 miles away",
+    sector: "Hospitality",
+  },
+];
 
-type Member = { id: string; name: string | null; email: string };
+export default function MarketplacePage() {
+  const [shifts, setShifts] = useState(initialShifts);
+  const [claimedIds, setClaimedIds] = useState<string[]>([]);
 
-function fmt(iso: string) {
-  try {
-    return new Date(iso).toLocaleString(undefined, {
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
-  } catch {
-    return iso;
-  }
-}
-
-export default function TimekeepingPage() {
-  const [punches, setPunches] = useState<Punch[]>([]);
-  const [team, setTeam] = useState<Member[]>([]);
-  const [userId, setUserId] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [pRes, tRes] = await Promise.all([fetch("/api/punches"), fetch("/api/team")]);
-      const pData = await pRes.json();
-      const tData = await tRes.json();
-      setPunches(pData.punches || []);
-      const users = tData.users || [];
-      setTeam(users);
-      if (!userId && users[0]) setUserId(users[0].id);
-    } catch {
-      setPunches([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [userId]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  async function punch(type: "clock_in" | "clock_out") {
-    setBusy(true);
-    try {
-      await fetch("/api/punches", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, userId: userId || undefined }),
-      });
-      await load();
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function approve(id: string) {
-    await fetch("/api/punches", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, approved: true }),
-    });
-    await load();
-  }
+  const handleClaim = (id: string) => {
+    setClaimedIds((prev) => [...prev, id]);
+  };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Header */}
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-600/20">
+              Cooperative Ring Active
+            </span>
             <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
-              Engine 1: Internal Timekeeping
+              15-Mile Geofence
             </span>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">Timekeeping & Compliance</h1>
-          <p className="text-muted-foreground mt-1">Clock in/out events and automated labor rule validation</p>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight">Community Talent Pool</h1>
+          <p className="mt-1 text-muted-foreground">
+            Share cross-trained staff and pick up open shifts across trusted local businesses
+          </p>
         </div>
+        <Button className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl">
+          <PlusCircle className="h-4 w-4" />
+          Broadcast Overflow Shift
+        </Button>
       </div>
 
-      <Card className="rounded-2xl border-border/60 bg-white/80 shadow-sm backdrop-blur">
-        <CardHeader>
-          <CardTitle className="text-lg">Quick punch</CardTitle>
-          <CardDescription>Record a clock event for someone on the roster</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          <div className="flex-1">
-            <label className="mb-1 block text-sm font-medium">Person</label>
-            <select
-              className="w-full rounded-xl border px-3 py-2 text-sm bg-white"
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
-            >
-              {team.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name || m.email}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex gap-2">
-            <Button className="rounded-xl" disabled={busy || !userId} onClick={() => punch("clock_in")}>
-              <LogIn className="mr-2 h-4 w-4" />
-              Clock in
-            </Button>
-            <Button variant="outline" className="rounded-xl" disabled={busy || !userId} onClick={() => punch("clock_out")}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Clock out
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Available Shared Shifts Grid */}
+      <div className="grid gap-4 md:grid-cols-2">
+        {shifts.map((shift) => {
+          const isClaimed = claimedIds.includes(shift.id);
 
-      <Card className="rounded-2xl border-border/60 bg-white/80 shadow-sm backdrop-blur">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between text-lg">
-            <span className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-primary" />
-              Recent punches & audits
-            </span>
-            <span className="text-xs font-normal text-muted-foreground flex items-center gap-1">
-              <ShieldCheck className="h-4 w-4 text-emerald-600" /> FLSA Rule Check Active
-            </span>
-          </CardTitle>
-          <CardDescription>Approve pending time events and review compliance</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex h-32 items-center justify-center text-muted-foreground">
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Loading…
-            </div>
-          ) : punches.length === 0 ? (
-            <p className="py-8 text-center text-muted-foreground">No punches yet — clock someone in</p>
-          ) : (
-            <ul className="divide-y divide-border/60">
-              {punches.map((p) => (
-                <li
-                  key={p.id}
-                  className="flex flex-col gap-3 py-4 first:pt-0 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium">{p.user?.name || p.user?.email || "Employee"}</p>
-                    </div>
-                    <p className="text-sm capitalize text-muted-foreground">
-                      {p.type.replace("_", " ")} · {fmt(p.timestamp)}
-                    </p>
+          return (
+            <Card key={shift.id} className="rounded-2xl border-border/60 bg-white/85 shadow-sm backdrop-blur">
+              <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                <div>
+                  <Badge variant="outline" className="mb-2 bg-indigo-50/50 text-indigo-700 border-indigo-200">
+                    {shift.sector}
+                  </Badge>
+                  <CardTitle className="text-lg font-semibold">{shift.title}</CardTitle>
+                  <CardDescription className="flex items-center gap-1.5 mt-1">
+                    <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                    {shift.business}
+                  </CardDescription>
+                </div>
+                <span className="text-sm font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg">
+                  {shift.payRate}
+                </span>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-2">
+                <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-3.5 w-3.5 text-primary" />
+                    <span>{shift.date}</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    {p.approved ? (
-                      <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-800">
-                        Approved & Validated
-                      </span>
-                    ) : (
-                      <Button size="sm" className="rounded-lg bg-primary text-white" onClick={() => approve(p.id)}>
-                        <Check className="mr-1 h-4 w-4" />
-                        Approve Punch
-                      </Button>
-                    )}
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-3.5 w-3.5 text-amber-600" />
+                    <span>{shift.distance} (Within local micro-region)</span>
                   </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+                </div>
+
+                <div className="pt-2 flex items-center justify-between border-t border-border/60">
+                  <span className="text-xs text-muted-foreground">Compliance checked (FLSA / Overtime)</span>
+                  {isClaimed ? (
+                    <Button disabled variant="outline" className="gap-1.5 text-emerald-600 border-emerald-200 bg-emerald-50">
+                      <CheckCircle2 className="h-4 w-4" />
+                      Claimed & Locked
+                    </Button>
+                  ) : (
+                    <Button 
+                      onClick={() => handleClaim(shift.id)}
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl text-xs h-9"
+                    >
+                      Claim Shift
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 }
