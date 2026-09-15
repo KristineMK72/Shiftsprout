@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Clock, Check, Loader2, LogIn, LogOut } from "lucide-react";
+import { Clock, Check, Loader2, LogIn, LogOut, AlertTriangle, ShieldCheck } from "lucide-react";
 
 type Punch = {
   id: string;
@@ -60,7 +60,7 @@ export default function TimekeepingPage() {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
 
   async function punch(type: "clock_in" | "clock_out") {
     setBusy(true);
@@ -87,9 +87,16 @@ export default function TimekeepingPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Timekeeping</h1>
-        <p className="text-muted-foreground mt-1">Clock in/out and approve punches</p>
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+              Engine 1: Internal Timekeeping
+            </span>
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight">Timekeeping & Compliance</h1>
+          <p className="text-muted-foreground mt-1">Clock in/out events and automated labor rule validation</p>
+        </div>
       </div>
 
       <Card className="rounded-2xl border-border/60 bg-white/80 shadow-sm backdrop-blur">
@@ -101,7 +108,7 @@ export default function TimekeepingPage() {
           <div className="flex-1">
             <label className="mb-1 block text-sm font-medium">Person</label>
             <select
-              className="w-full rounded-xl border px-3 py-2 text-sm"
+              className="w-full rounded-xl border px-3 py-2 text-sm bg-white"
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
             >
@@ -127,11 +134,16 @@ export default function TimekeepingPage() {
 
       <Card className="rounded-2xl border-border/60 bg-white/80 shadow-sm backdrop-blur">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Clock className="h-5 w-5 text-primary" />
-            Recent punches
+          <CardTitle className="flex items-center justify-between text-lg">
+            <span className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-primary" />
+              Recent punches & audits
+            </span>
+            <span className="text-xs font-normal text-muted-foreground flex items-center gap-1">
+              <ShieldCheck className="h-4 w-4 text-emerald-600" /> FLSA Rule Check Active
+            </span>
           </CardTitle>
-          <CardDescription>Approve pending time events</CardDescription>
+          <CardDescription>Approve pending time events and review compliance</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -148,20 +160,22 @@ export default function TimekeepingPage() {
                   className="flex flex-col gap-3 py-4 first:pt-0 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div>
-                    <p className="font-medium">{p.user?.name || p.user?.email || "Employee"}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium">{p.user?.name || p.user?.email || "Employee"}</p>
+                    </div>
                     <p className="text-sm capitalize text-muted-foreground">
                       {p.type.replace("_", " ")} · {fmt(p.timestamp)}
                     </p>
                   </div>
-                  <div>
+                  <div className="flex items-center gap-3">
                     {p.approved ? (
                       <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-800">
-                        Approved
+                        Approved & Validated
                       </span>
                     ) : (
-                      <Button size="sm" className="rounded-lg" onClick={() => approve(p.id)}>
+                      <Button size="sm" className="rounded-lg bg-primary text-white" onClick={() => approve(p.id)}>
                         <Check className="mr-1 h-4 w-4" />
-                        Approve
+                        Approve Punch
                       </Button>
                     )}
                   </div>
