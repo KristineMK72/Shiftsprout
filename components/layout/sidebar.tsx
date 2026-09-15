@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Calendar,
@@ -12,6 +12,8 @@ import {
   Settings,
   Bot,
   Sprout,
+  Monitor,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +30,13 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  async function logout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+    router.refresh();
+  }
 
   return (
     <aside className="hidden md:flex w-64 flex-col border-r border-[hsl(var(--sidebar-border))] bg-[hsl(var(--sidebar))]">
@@ -63,12 +72,27 @@ export function Sidebar() {
             </Link>
           );
         })}
+        <Link
+          href="/wallboard"
+          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+        >
+          <Monitor className="h-4 w-4 shrink-0" />
+          Wallboard
+        </Link>
       </nav>
 
-      <div className="border-t border-[hsl(var(--sidebar-border))] p-4">
+      <div className="space-y-2 border-t border-[hsl(var(--sidebar-border))] p-4">
+        <button
+          type="button"
+          onClick={logout}
+          className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+        >
+          <LogOut className="h-4 w-4" />
+          Sign out
+        </button>
         <div className="rounded-xl bg-primary/5 px-3 py-2.5 text-xs">
           <div className="font-medium text-foreground">Workforce OS</div>
-          <div className="text-muted-foreground">v1.0 · Production</div>
+          <div className="text-muted-foreground">Rural-ready · v1.0</div>
         </div>
       </div>
     </aside>
