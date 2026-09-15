@@ -18,6 +18,7 @@ import {
   CheckCircle2,
   ArrowUpRight,
   Plane,
+  Globe,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -26,6 +27,7 @@ type Stats = {
   openShifts: number;
   pendingPto: number;
   teamCount: number;
+  marketplaceShifts: number; // Rural community pool metric
 };
 
 export default function DashboardPage() {
@@ -34,6 +36,7 @@ export default function DashboardPage() {
     openShifts: 0,
     pendingPto: 0,
     teamCount: 0,
+    marketplaceShifts: 0,
   });
 
   useEffect(() => {
@@ -45,6 +48,7 @@ export default function DashboardPage() {
           openShifts: d.openShifts ?? 0,
           pendingPto: d.pendingPto ?? 0,
           teamCount: d.teamCount ?? 0,
+          marketplaceShifts: d.marketplaceShifts ?? 0,
         })
       )
       .catch(() => {});
@@ -59,23 +63,23 @@ export default function DashboardPage() {
       tone: "text-emerald-600 bg-emerald-50",
     },
     {
-      title: "Open shifts",
+      title: "Internal open shifts",
       value: String(stats.openShifts),
-      change: "Need coverage",
+      change: "Need local coverage",
       icon: Calendar,
       tone: "text-amber-600 bg-amber-50",
     },
     {
-      title: "Pending PTO",
-      value: String(stats.pendingPto),
-      change: "Awaiting approval",
-      icon: Plane,
-      tone: "text-sky-600 bg-sky-50",
+      title: "Community pool",
+      value: String(stats.marketplaceShifts),
+      change: "Shared regional shifts",
+      icon: Globe,
+      tone: "text-indigo-600 bg-indigo-50",
     },
     {
       title: "Team size",
       value: String(stats.teamCount),
-      change: "People on roster",
+      change: "Local roster size",
       icon: TrendingUp,
       tone: "text-violet-600 bg-violet-50",
     },
@@ -83,10 +87,21 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
+      {/* Header with Dual-Engine Badges */}
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="mt-1 text-muted-foreground">Overview of your workforce operations</p>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-600/20">
+              Dual-Engine Operations
+            </span>
+            <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+              Rural Co-op Ring Active
+            </span>
+          </div>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="mt-1 text-muted-foreground">
+            Overview of internal timekeeping, scheduling, and regional labor sharing
+          </p>
         </div>
         <div className="text-sm text-muted-foreground">
           Today ·{" "}
@@ -98,14 +113,17 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Stats Cards Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((s) => (
           <Card
             key={s.title}
-            className="rounded-2xl border-border/60 bg-white/80 shadow-sm backdrop-blur card-hover"
+            className="rounded-2xl border-border/60 bg-white/80 shadow-sm backdrop-blur transition-all hover:shadow-md"
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{s.title}</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {s.title}
+              </CardTitle>
               <div className={`rounded-lg p-2 ${s.tone}`}>
                 <s.icon className="h-4 w-4" />
               </div>
@@ -118,18 +136,21 @@ export default function DashboardPage() {
         ))}
       </div>
 
+      {/* Main Sections Grid */}
       <div className="grid gap-6 lg:grid-cols-2">
+        {/* Quick Actions */}
         <Card className="rounded-2xl border-border/60 bg-white/80 shadow-sm backdrop-blur">
           <CardHeader>
             <CardTitle className="text-lg">Quick actions</CardTitle>
-            <CardDescription>Jump into common tasks</CardDescription>
+            <CardDescription>Internal tools & community marketplace</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-2">
             {[
-              { href: "/dashboard/schedule", icon: Calendar, label: "Build / edit schedule" },
-              { href: "/dashboard/timekeeping", icon: Clock, label: "Review time punches" },
-              { href: "/dashboard/pto", icon: CheckCircle2, label: "Approve PTO requests" },
-              { href: "/dashboard/team", icon: Users, label: "Manage team roster" },
+              { href: "/dashboard/schedule", icon: Calendar, label: "Build / edit internal schedule" },
+              { href: "/dashboard/marketplace", icon: Globe, label: "Browse community talent pool" },
+              { href: "/dashboard/timekeeping", icon: Clock, label: "Review time punches & payroll" },
+              { href: "/dashboard/pto", icon: CheckCircle2, label: `Approve PTO requests (${stats.pendingPto} pending)` },
+              { href: "/dashboard/team", icon: Users, label: "Manage local team roster" },
             ].map((a) => (
               <Button
                 key={a.href}
@@ -149,41 +170,42 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
+        {/* Dual-Engine Focus Areas */}
         <Card className="rounded-2xl border-border/60 bg-white/80 shadow-sm backdrop-blur">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <AlertCircle className="h-5 w-5 text-amber-500" />
-              Focus areas
+              <AlertCircle className="h-5 w-5 text-indigo-500" />
+              Dual-Engine Insights
             </CardTitle>
-            <CardDescription>Based on live counts</CardDescription>
+            <CardDescription>Internal operations vs. regional pool status</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {[
               {
+                color: "bg-indigo-500",
+                title:
+                  stats.marketplaceShifts > 0
+                    ? `${stats.marketplaceShifts} shared shift${stats.marketplaceShifts === 1 ? "" : "s"} available nearby`
+                    : "No active shared shifts in ring",
+                desc: "Collaborative labor pool across neighboring businesses",
+              },
+              {
                 color: "bg-amber-500",
                 title:
                   stats.openShifts > 0
-                    ? `${stats.openShifts} open shift${stats.openShifts === 1 ? "" : "s"}`
-                    : "No open shifts",
-                desc: "Coverage that still needs an assignee",
-              },
-              {
-                color: "bg-sky-500",
-                title:
-                  stats.pendingPto > 0
-                    ? `${stats.pendingPto} PTO request${stats.pendingPto === 1 ? "" : "s"} pending`
-                    : "PTO queue clear",
-                desc: "Leave waiting on manager approval",
+                    ? `${stats.openShifts} internal open shift${stats.openShifts === 1 ? "" : "s"}`
+                    : "Internal schedule fully covered",
+                desc: "Shifts needing your local team's attention",
               },
               {
                 color: "bg-emerald-500",
-                title: `${stats.teamCount} people on the roster`,
-                desc: "Northwoods Clinic and your sites",
+                title: `${stats.teamCount} local workers on roster`,
+                desc: "Active staff ready for internal shifts or ring sharing",
               },
             ].map((a) => (
               <div
                 key={a.title}
-                className="flex items-start gap-3 rounded-xl border border-border/60 bg-white/60 p-3.5"
+                className="flex items-start gap-3 rounded-xl border border-border/60 bg-white/60 p-3.5 transition-colors hover:bg-white/90"
               >
                 <div className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${a.color}`} />
                 <div>
