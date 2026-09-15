@@ -8,65 +8,97 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(uuid())
-  email         String   @unique
-  name          String?
-  phone         String?
-  role          String   @default("employee")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  phone     String?
+  role      String   @default("employee") // employee | manager | admin
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  shifts        Shift[]
-  punches       Punch[]
-  coverageReqs  CoverageRequest[]
+  shifts       Shift[]
+  punches      Punch[]
+  coverageReqs CoverageRequest[]
+  ptoRequests  PtoRequest[]
+  ptoBalances  PtoBalance[]
 }
 
 model Location {
   id        String   @id @default(uuid())
   name      String
   address   String?
+  timezone  String   @default("America/Chicago")
   createdAt DateTime @default(now())
 
-  // Relations
-  shifts    Shift[]
+  shifts Shift[]
 }
 
 model Shift {
-  id          String   @id @default(uuid())
-  userId      String?
-  locationId  String
-  role        String
-  startTime   DateTime
-  endTime     DateTime
-  notes       String?
-  createdAt   DateTime @default(now())
+  id         String   @id @default(uuid())
+  userId     String?
+  locationId String
+  role       String
+  startTime  DateTime
+  endTime    DateTime
+  notes      String?
+  status     String   @default("scheduled") // scheduled | open | completed | cancelled
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  // Relations
-  user        User?      @relation(fields: [userId], references: [id])
-  location    Location   @relation(fields: [locationId], references: [id])
+  user        User?            @relation(fields: [userId], references: [id])
+  location    Location         @relation(fields: [locationId], references: [id])
   coverageReq CoverageRequest?
 }
 
 model CoverageRequest {
   id        String   @id @default(uuid())
   shiftId   String   @unique
-  status    String   @default("pending") // pending, accepted, declined
+  userId    String?  // who is requesting or who accepted
+  status    String   @default("pending") // pending | accepted | declined | filled
+  note      String?
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  // Relations
-  shift     Shift    @relation(fields: [shiftId], references: [id])
-  user      User?    @relation(fields: [userId], references: [id])
-  userId    String?
+  shift Shift @relation(fields: [shiftId], references: [id])
+  user  User? @relation(fields: [userId], references: [id])
 }
 
 model Punch {
   id        String   @id @default(uuid())
   userId    String
-  type      String   // clock_in, clock_out, break_start, break_end
+  type      String   // clock_in | clock_out | break_start | break_end
   timestamp DateTime @default(now())
+  approved  Boolean  @default(false)
+  note      String?
   createdAt DateTime @default(now())
 
-  // Relations
-  user      User     @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+}
+
+model PtoRequest {
+  id        String   @id @default(uuid())
+  userId    String
+  startDate DateTime
+  endDate   DateTime
+  type      String   // vacation | sick | personal | unpaid
+  status    String   @default("pending") // pending | approved | denied | cancelled
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model PtoBalance {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String   // vacation | sick | personal
+  hours     Float    @default(0)
+  year      Int
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, type, year])
 }
