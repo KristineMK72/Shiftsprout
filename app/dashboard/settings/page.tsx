@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -9,22 +9,38 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Settings, Building2, MapPin, Clock, Globe, ShieldCheck, CheckCircle2, Loader2 } from "lucide-react";
+import { Building2, Globe, ShieldCheck, CheckCircle2, Loader2 } from "lucide-react";
 
 export default function SettingsPage() {
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
-  
+
   const [settings, setSettings] = useState({
-    orgName: "Northwoods Rural Health & Co-op Hub",
-    locationName: "Main Street Facility",
-    city: "Pillager",
-    state: "MN",
+    orgName: "",
+    locationName: "",
+    city: "",
+    state: "",
     timezone: "America/Chicago",
     payPeriod: "bi-weekly",
     geofenceRadius: "15",
-    flsaRule: "standard-40",
   });
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((r) => r.json())
+      .then((d) => {
+        setSettings((prev) => ({
+          ...prev,
+          orgName: d.tenant?.name || prev.orgName,
+          locationName: d.location?.name || prev.locationName,
+          city: d.location?.city || prev.city,
+          state: d.location?.state || prev.state,
+          timezone: d.location?.timezone || prev.timezone,
+        }));
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   const handleChange = (field: string, value: string) => {
     setSettings((prev) => ({ ...prev, [field]: value }));
@@ -34,12 +50,22 @@ export default function SettingsPage() {
     e.preventDefault();
     setSaving(true);
     setSuccess(false);
-
     try {
-      // Simulate saving configuration to API / database
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 4000);
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tenantName: settings.orgName,
+          locationName: settings.locationName,
+          city: settings.city,
+          state: settings.state,
+          timezone: settings.timezone,
+        }),
+      });
+      if (res.ok) {
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 4000);
+      }
     } catch (err) {
       console.error("Failed to save settings", err);
     } finally {
@@ -47,63 +73,61 @@ export default function SettingsPage() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex h-40 items-center justify-center text-muted-foreground">
+        <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Loading…
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-600/20">
-              System Configuration
-            </span>
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight">Organization Settings</h1>
-          <p className="mt-1 text-muted-foreground">
-            Manage your rural business profile, location geofences, and FLSA compliance defaults
-          </p>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Organization Settings</h1>
+        <p className="mt-1 text-muted-foreground">
+          Business profile, location, and rural co-op defaults — saved to Neon
+        </p>
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
-        {/* Organization & Location Profile */}
-        <Card className="rounded-2xl border-border/60 bg-white/85 shadow-sm backdrop-blur">
+        <Card className="rounded-2xl border-border/60 bg-white/85 shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <Building2 className="h-5 w-5 text-primary" />
-              Business & Location Profile
+              Business & location
             </CardTitle>
-            <CardDescription>Primary identity for internal ops and regional co-op broadcasting</CardDescription>
+            <CardDescription>Used on wallboard, schedule, and payroll exports</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="mb-1.5 block text-sm font-medium">Organization / Business Name</label>
+                <label className="mb-1.5 block text-sm font-medium">Organization</label>
                 <input
                   type="text"
-                  className="w-full rounded-xl border border-border px-3.5 py-2 text-sm bg-white"
+                  className="w-full rounded-xl border px-3.5 py-2 text-sm"
                   value={settings.orgName}
                   onChange={(e) => handleChange("orgName", e.target.value)}
                   required
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-medium">Primary Facility Name</label>
+                <label className="mb-1.5 block text-sm font-medium">Facility name</label>
                 <input
                   type="text"
-                  className="w-full rounded-xl border border-border px-3.5 py-2 text-sm bg-white"
+                  className="w-full rounded-xl border px-3.5 py-2 text-sm"
                   value={settings.locationName}
                   onChange={(e) => handleChange("locationName", e.target.value)}
                   required
                 />
               </div>
             </div>
-
-            <div className="grid gap-4 sm:grid-cols-3 pt-2">
+            <div className="grid gap-4 sm:grid-cols-3">
               <div>
                 <label className="mb-1.5 block text-sm font-medium">City</label>
                 <input
                   type="text"
-                  className="w-full rounded-xl border border-border px-3.5 py-2 text-sm bg-white"
+                  className="w-full rounded-xl border px-3.5 py-2 text-sm"
                   value={settings.city}
                   onChange={(e) => handleChange("city", e.target.value)}
                 />
@@ -112,7 +136,7 @@ export default function SettingsPage() {
                 <label className="mb-1.5 block text-sm font-medium">State</label>
                 <input
                   type="text"
-                  className="w-full rounded-xl border border-border px-3.5 py-2 text-sm bg-white"
+                  className="w-full rounded-xl border px-3.5 py-2 text-sm"
                   value={settings.state}
                   onChange={(e) => handleChange("state", e.target.value)}
                 />
@@ -120,101 +144,89 @@ export default function SettingsPage() {
               <div>
                 <label className="mb-1.5 block text-sm font-medium">Timezone</label>
                 <select
-                  className="w-full rounded-xl border border-border px-3.5 py-2 text-sm bg-white"
+                  className="w-full rounded-xl border px-3.5 py-2 text-sm"
                   value={settings.timezone}
                   onChange={(e) => handleChange("timezone", e.target.value)}
                 >
-                  <option value="America/Chicago">Central Time (US/Central)</option>
-                  <option value="America/New_York">Eastern Time (US/Eastern)</option>
-                  <option value="America/Denver">Mountain Time (US/Denver)</option>
-                  <option value="America/Los_Angeles">Pacific Time (US/Los_Angeles)</option>
+                  <option value="America/Chicago">Central</option>
+                  <option value="America/New_York">Eastern</option>
+                  <option value="America/Denver">Mountain</option>
+                  <option value="America/Los_Angeles">Pacific</option>
                 </select>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Spatial & Cooperative Ring Settings */}
-        <Card className="rounded-2xl border-border/60 bg-white/85 shadow-sm backdrop-blur">
+        <Card className="rounded-2xl border-border/60 bg-white/85 shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <Globe className="h-5 w-5 text-indigo-600" />
-              Spatialytics & Cooperative Ring
+              Cooperative ring
             </CardTitle>
-            <CardDescription>Configure your micro-regional labor sharing parameters</CardDescription>
+            <CardDescription>Defaults for the Community Talent Pool</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-1.5 block text-sm font-medium">Default Geofence Radius</label>
-                <select
-                  className="w-full rounded-xl border border-border px-3.5 py-2 text-sm bg-white"
-                  value={settings.geofenceRadius}
-                  onChange={(e) => handleChange("geofenceRadius", e.target.value)}
-                >
-                  <option value="10">10 Miles (Immediate Vicinity)</option>
-                  <option value="15">15 Miles (Standard Rural Ring)</option>
-                  <option value="25">25 Miles (Extended County Hub)</option>
-                </select>
-                <p className="mt-1 text-xs text-muted-foreground">Radius used for partner shift broadcasts and map clusters.</p>
-              </div>
-
-              <div>
-                <label className="mb-1.5 block text-sm font-medium">Pay Period Cycle</label>
-                <select
-                  className="w-full rounded-xl border border-border px-3.5 py-2 text-sm bg-white"
-                  value={settings.payPeriod}
-                  onChange={(e) => handleChange("payPeriod", e.target.value)}
-                >
-                  <option value="weekly">Weekly (Every Sunday)</option>
-                  <option value="bi-weekly">Bi-Weekly (Every 2 Weeks)</option>
-                  <option value="semi-monthly">Semi-Monthly (1st & 15th)</option>
-                </select>
-              </div>
+          <CardContent className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="mb-1.5 block text-sm font-medium">Geofence radius</label>
+              <select
+                className="w-full rounded-xl border px-3.5 py-2 text-sm"
+                value={settings.geofenceRadius}
+                onChange={(e) => handleChange("geofenceRadius", e.target.value)}
+              >
+                <option value="10">10 miles</option>
+                <option value="15">15 miles</option>
+                <option value="25">25 miles</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium">Pay period</label>
+              <select
+                className="w-full rounded-xl border px-3.5 py-2 text-sm"
+                value={settings.payPeriod}
+                onChange={(e) => handleChange("payPeriod", e.target.value)}
+              >
+                <option value="weekly">Weekly</option>
+                <option value="bi-weekly">Bi-weekly</option>
+                <option value="semi-monthly">Semi-monthly</option>
+              </select>
             </div>
           </CardContent>
         </Card>
 
-        {/* Compliance Rules */}
-        <Card className="rounded-2xl border-border/60 bg-white/85 shadow-sm backdrop-blur">
+        <Card className="rounded-2xl border-border/60 bg-white/85 shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <ShieldCheck className="h-5 w-5 text-emerald-600" />
-              Labor Compliance & Overtime Rules
+              Labor compliance
             </CardTitle>
-            <CardDescription>Automated auditing for internal and cross-employer shifts</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-4 rounded-xl border border-border/60 bg-white/60">
+          <CardContent>
+            <div className="flex items-center justify-between rounded-xl border p-4">
               <div>
-                <p className="font-medium text-sm">FLSA 40-Hour Weekly Overtime Threshold</p>
-                <p className="text-xs text-muted-foreground">Automatically flag or block shift claims that exceed 40 total hours across the ring.</p>
+                <p className="font-medium text-sm">FLSA 40-hour weekly OT threshold</p>
+                <p className="text-xs text-muted-foreground">Tracked on Payroll and AI Insights</p>
               </div>
-              <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">
-                Active & Enforced
+              <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">
+                Active
               </span>
             </div>
           </CardContent>
         </Card>
 
-        {/* Action Bar */}
-        <div className="flex items-center justify-end gap-3 pt-2">
+        <div className="flex items-center justify-end gap-3">
           {success && (
             <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-200">
-              <CheckCircle2 className="h-4 w-4" /> Settings updated successfully!
+              <CheckCircle2 className="h-4 w-4" /> Saved to database
             </span>
           )}
-          <Button
-            type="submit"
-            disabled={saving}
-            className="rounded-xl bg-primary text-white hover:bg-primary/90 px-6 py-2.5 shadow-sm"
-          >
+          <Button type="submit" disabled={saving} className="rounded-xl px-6">
             {saving ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving changes...
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…
               </>
             ) : (
-              "Save Configuration"
+              "Save configuration"
             )}
           </Button>
         </div>
