@@ -14,6 +14,7 @@ import {
   Sprout,
   Monitor,
   LogOut,
+  Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +25,7 @@ const navItems = [
   { href: "/dashboard/team", label: "Team", icon: Users },
   { href: "/dashboard/payroll", label: "Payroll", icon: DollarSign },
   { href: "/dashboard/pto", label: "PTO & Leave", icon: Plane },
+  { href: "/dashboard/marketplace", label: "Talent Pool", icon: Globe },
   { href: "/dashboard/ai", label: "AI Insights", icon: Bot },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
