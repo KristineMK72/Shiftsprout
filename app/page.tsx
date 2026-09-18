@@ -7,20 +7,38 @@ import {
   Bot,
   ArrowRight,
   Sparkles,
+  ExternalLink,
 } from "lucide-react";
+
+const ecosystem = [
+  {
+    name: "Spatialytics",
+    role: "Home · location intelligence",
+    href: "https://spatialytics-astro.vercel.app",
+  },
+  {
+    name: "Pipeline",
+    role: "CRM · deals & field jobs",
+    href: "https://spatialytics-pipeline.vercel.app",
+  },
+  {
+    name: "ShiftSprout",
+    role: "Workforce · schedules & payroll",
+    href: "/",
+    current: true,
+  },
+];
 
 export default function HomePage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-mesh">
-      {/* subtle top accent line */}
       <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
 
       <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 py-16">
         <div className="mx-auto max-w-3xl text-center">
-          {/* badge */}
           <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary">
             <Sparkles className="h-3.5 w-3.5" />
-            Workforce Operating System
+            Workforce Operating System · Spatialytics family
           </div>
 
           <h1 className="text-5xl font-bold tracking-tight sm:text-6xl md:text-7xl">
@@ -32,13 +50,13 @@ export default function HomePage() {
           </h1>
 
           <p className="mt-5 text-xl text-muted-foreground sm:text-2xl">
-            The modern alternative to ADP &amp; UKG
+            The modern alternative to ADP & UKG
           </p>
 
           <p className="mx-auto mt-4 max-w-lg text-base text-muted-foreground">
             Scheduling, timekeeping, payroll visibility, PTO, and AI insights —
             built for growing teams that want clarity without the enterprise
-            complexity.
+            complexity. Part of the Spatialytics stack for Greater Minnesota.
           </p>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -63,7 +81,6 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* feature cards */}
         <div className="mt-20 grid w-full max-w-4xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
             {
@@ -100,8 +117,54 @@ export default function HomePage() {
           ))}
         </div>
 
-        <p className="mt-16 text-xs text-muted-foreground">
-          Built for teams that outgrew spreadsheets
+        {/* Ecosystem links */}
+        <div className="mt-16 w-full max-w-3xl rounded-2xl border border-border/60 bg-white/60 p-6 backdrop-blur">
+          <p className="text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Spatialytics product family
+          </p>
+          <p className="mt-2 text-center text-sm text-muted-foreground">
+            Place → customers & jobs → people on shifts
+          </p>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            {ecosystem.map((item) =>
+              item.current ? (
+                <div
+                  key={item.name}
+                  className="rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 text-center"
+                >
+                  <div className="font-semibold text-foreground">{item.name}</div>
+                  <div className="text-xs text-muted-foreground">{item.role}</div>
+                  <div className="mt-1 text-xs font-medium text-primary">You are here</div>
+                </div>
+              ) : (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group rounded-xl border border-border/80 bg-white/80 px-4 py-3 text-center transition hover:border-primary/40 hover:shadow-sm"
+                >
+                  <div className="flex items-center justify-center gap-1 font-semibold text-foreground">
+                    {item.name}
+                    <ExternalLink className="h-3 w-3 opacity-50 group-hover:opacity-100" />
+                  </div>
+                  <div className="text-xs text-muted-foreground">{item.role}</div>
+                </a>
+              )
+            )}
+          </div>
+        </div>
+
+        <p className="mt-10 text-xs text-muted-foreground">
+          Built for teams that outgrew spreadsheets ·{" "}
+          <a
+            href="https://spatialytics-astro.vercel.app"
+            className="text-primary hover:underline"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Spatialytics
+          </a>
         </p>
       </div>
     </main>
