@@ -15,6 +15,7 @@ import {
   Monitor,
   LogOut,
   Globe,
+  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +29,11 @@ const navItems = [
   { href: "/dashboard/marketplace", label: "Talent Pool", icon: Globe },
   { href: "/dashboard/ai", label: "AI Insights", icon: Bot },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
+];
+
+const family = [
+  { href: "https://spatialytics-astro.vercel.app", label: "Spatialytics" },
+  { href: "https://spatialytics-pipeline.vercel.app", label: "Pipeline CRM" },
 ];
 
 export function Sidebar() {
@@ -84,6 +90,21 @@ export function Sidebar() {
       </nav>
 
       <div className="space-y-2 border-t border-[hsl(var(--sidebar-border))] p-4">
+        <div className="px-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Spatialytics family
+        </div>
+        {family.map((item) => (
+          <a
+            key={item.href}
+            href={item.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+          >
+            {item.label}
+            <ExternalLink className="h-3 w-3 shrink-0 opacity-60" />
+          </a>
+        ))}
         <button
           type="button"
           onClick={logout}
