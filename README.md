@@ -1,5 +1,10 @@
 # ShiftSprout OS
 
+[![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org)
+[![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma)](https://www.prisma.io)
+[![Neon](https://img.shields.io/badge/Neon-green?style=for-the-badge)](https://neon.tech)
+
 **Workforce Operating System** — a focused, modern alternative to ADP and UKG.
 
 Scheduling · Timekeeping · Payroll visibility · PTO · AI insights
@@ -7,6 +12,8 @@ Scheduling · Timekeeping · Payroll visibility · PTO · AI insights
 Built so rural and mid-market operators can **keep overhead low and put more into paychecks**.
 
 Part of the Spatialytics family of tools for place-based and rural economic strength.
+
+> ⭐ Star this repo if you work with rural employers, scheduling, or lean workforce tools.
 
 ---
 
@@ -79,3 +86,7 @@ prisma/
 ## License
 
 Private / proprietary for now.
+
+---
+
+Open to feedback and collaborators focused on rural workforce tools.
